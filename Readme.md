@@ -9,11 +9,11 @@ This is the official code for paper "Iterative Scale-Up ExpansionIoU and Deep Fe
 * Clone this repo, and we'll call the directory that you cloned as {Deep-EIoU Root}
 * Install dependencies.
 ```
-conda create -n DeepEIoU python=3.7
+conda create -n DeepEIoU python=3.11
 conda activate DeepEIoU
 
 # Install pytorch with the proper cuda version to suit your machine
-# We are using torch==1.13.0 torchvision==0.14.0 torchaudio==0.13.0 with cuda==11.6
+# We are using torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 with cuda==12.6
 
 cd Deep-EIoU/reid
 pip install -r requirements.txt
