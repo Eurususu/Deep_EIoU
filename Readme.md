@@ -18,8 +18,6 @@ conda activate DeepEIoU
 cd Deep-EIoU/reid
 pip install -r requirements.txt
 pip install cython_bbox
-python setup.py develop
-cd ..
 ```
 
 ## Reproduce on SportsMOT dataset
