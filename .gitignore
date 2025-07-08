@@ -1,3 +1,5 @@
 videos/
 .idea/
 tools/YOLOX_outputs/
+checkpoints/best_ckpt.pth.tar
+checkpoints/sports_model.pth.tar-60
