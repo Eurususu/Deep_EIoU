@@ -11,10 +11,10 @@ from collections import defaultdict
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
 
-    def __init__(self, tlwh, score, feat=None, feat_history=30):
+    def __init__(self, tlwh, score, feat=None, feat_history=60):
 
         # wait activate
-        self._tlwh = np.asarray(tlwh, dtype=np.float)
+        self._tlwh = np.asarray(tlwh, dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -131,6 +131,27 @@ class STrack(BaseTrack):
             self.update_features(new_track.curr_feat)
             self.features.append(new_track.curr_feat)
             self.times.append(frame_id)
+
+        self.state = TrackState.Tracked
+        self.is_activated = True
+
+        self.score = new_track.score
+
+    def second_update(self, new_track, frame_id):
+        """
+        Update a matched track
+        :type new_track: STrack
+        :type frame_id: int
+        :type update_feature: bool
+        :return:
+        """
+        self.frame_id = frame_id
+        self.tracklet_len += 1
+
+        new_tlwh = new_track.tlwh
+
+        self.last_tlwh = new_tlwh
+        self.times.append(frame_id)
 
         self.state = TrackState.Tracked
         self.is_activated = True

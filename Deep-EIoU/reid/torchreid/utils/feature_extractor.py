@@ -147,6 +147,6 @@ class FeatureExtractor(object):
             raise NotImplementedError
 
         with torch.no_grad():
-            features = self.model(images)
+            features = self.model(images, return_featuremaps=False)
 
         return features

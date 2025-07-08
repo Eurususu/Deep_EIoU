@@ -179,7 +179,7 @@ class Predictor(object):
             )
         return outputs, img_info
 
-def imageflow_demo(predictor, extractor, vis_folder, current_time, args):
+def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
     cap = cv2.VideoCapture(args.path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float
@@ -204,7 +204,7 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args):
             outputs, img_info = predictor.inference(frame, timer)
             if outputs[0] is not None:
                 det = outputs[0].cpu().detach().numpy()
-                scale = min(1440/width, 800/height)
+                scale = min(exp.test_size[1]/width, exp.test_size[0]/height)
                 det /= scale
                 rows_to_remove = np.any(det[:, 0:4] < 1, axis=1) # remove edge detection
                 det = det[~rows_to_remove]
@@ -315,7 +315,7 @@ def main(exp, args):
         device='cuda'
     )   
 
-    imageflow_demo(predictor, extractor, vis_folder, current_time, args)
+    imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp)
 
 
 if __name__ == "__main__":

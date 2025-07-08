@@ -56,13 +56,13 @@ def ious(atlbrs, btlbrs):
 
     :rtype ious np.ndarray
     """
-    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float)
+    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if ious.size == 0:
         return ious
 
     ious = bbox_ious(
-        np.ascontiguousarray(atlbrs, dtype=np.float),
-        np.ascontiguousarray(btlbrs, dtype=np.float)
+        np.ascontiguousarray(atlbrs, dtype=np.float32),
+        np.ascontiguousarray(btlbrs, dtype=np.float32)
     )
 
     return ious
@@ -87,7 +87,7 @@ def eious(atlbrs, btlbrs, e):
 
     :rtype ious np.ndarray
     """
-    eious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float)
+    eious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if eious.size == 0:
         return eious
 
@@ -95,8 +95,8 @@ def eious(atlbrs, btlbrs, e):
     btlbrs = np.array([expand(tlbr, e) for tlbr in btlbrs])
 
     eious = bbox_ious(
-        np.ascontiguousarray(atlbrs, dtype=np.float),
-        np.ascontiguousarray(btlbrs, dtype=np.float)
+        np.ascontiguousarray(atlbrs, dtype=np.float32),
+        np.ascontiguousarray(btlbrs, dtype=np.float32)
     )
 
     return eious
@@ -205,11 +205,11 @@ def embedding_distance(tracks, detections, metric='cosine'):
     :return: cost_matrix np.ndarray
     """
 
-    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float)
+    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float)
-    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float)
+    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
+    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
     cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # / 2.0  # Nomalized features
     return cost_matrix
 
