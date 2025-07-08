@@ -6,7 +6,9 @@ import time
 import cv2
 import torch
 import sys
-sys.path.append('.')
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 from loguru import logger
 
@@ -42,7 +44,7 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default="yolox/yolox_x_ch_sportsmot.py",
+        default=f"{PROJECT_ROOT}/yolox/yolox_x_ch_sportsmot.py",
         type=str,
         help="pls input your expriment description file",
     )
@@ -277,7 +279,7 @@ def main(exp, args):
 
     if not args.trt:
         if args.ckpt is None:
-            ckpt_file = "checkpoints/best_ckpt.pth.tar"
+            ckpt_file = f"{PROJECT_ROOT}/checkpoints/best_ckpt.pth.tar"
         else:
             ckpt_file = args.ckpt
         logger.info("loading checkpoint")
@@ -311,7 +313,7 @@ def main(exp, args):
     
     extractor = FeatureExtractor(
         model_name='osnet_x1_0',
-        model_path = 'checkpoints/sports_model.pth.tar-60',
+        model_path = f'{PROJECT_ROOT}/checkpoints/sports_model.pth.tar-60',
         device='cuda'
     )   
 

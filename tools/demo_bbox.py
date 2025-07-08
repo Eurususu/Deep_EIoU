@@ -6,9 +6,9 @@ import time
 import cv2
 import torch
 import sys
-from utils import check_path_type, get_sorted_image_files
-
-sys.path.append('.')
+from utils import check_path_type, get_sorted_image_files, parse_detection_file
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 from loguru import logger
 
@@ -31,7 +31,7 @@ def make_parser():
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
 
     parser.add_argument(
-        "--path", default="/home/jia/PycharmProjects/Deep-EIoU/1212.mp4", # /home/jia/PycharmProjects/gta-link/SoccerNet/tracking-2023/test/SNMOT-116
+        "--path", default=f"{PROJECT_ROOT}/videos/football2.mp4", # /home/jia/PycharmProjects/gta-link/SoccerNet/tracking-2023/test/SNMOT-116
         help="path to images or video"
     )
     parser.add_argument(
@@ -44,7 +44,7 @@ def make_parser():
     parser.add_argument(
         "-f",
         "--exp_file",
-        default="yolox/yolox_x_ch_sportsmot.py",
+        default=f"{PROJECT_ROOT}/yolox/yolox_x_ch_sportsmot.py",
         type=str,
         help="pls input your expriment description file",
     )
@@ -116,67 +116,7 @@ def write_results(filename, results):
     logger.info('save results to {}'.format(filename))
 
 
-class Predictor(object):
-    def __init__(
-            self,
-            model,
-            exp,
-            trt_file=None,
-            decoder=None,
-            device=torch.device("cpu"),
-            fp16=False
-    ):
-        self.model = model
-        self.decoder = decoder
-        self.num_classes = exp.num_classes
-        self.confthre = exp.test_conf
-        self.nmsthre = exp.nmsthre
-        self.test_size = exp.test_size
-        self.device = device
-        self.fp16 = fp16
-        if trt_file is not None:
-            from torch2trt import TRTModule
-
-            model_trt = TRTModule()
-            model_trt.load_state_dict(torch.load(trt_file))
-
-            x = torch.ones((1, 3, exp.test_size[0], exp.test_size[1]), device=device)
-            self.model(x)
-            self.model = model_trt
-        self.rgb_means = (0.485, 0.456, 0.406)
-        self.std = (0.229, 0.224, 0.225)
-
-    def inference(self, img, timer):
-        img_info = {"id": 0}
-        if isinstance(img, str):
-            img_info["file_name"] = osp.basename(img)
-            img = cv2.imread(img)
-        else:
-            img_info["file_name"] = None
-
-        height, width = img.shape[:2]
-        img_info["height"] = height
-        img_info["width"] = width
-        img_info["raw_img"] = img
-
-        img, ratio = preproc(img, self.test_size, self.rgb_means, self.std)
-        img_info["ratio"] = ratio
-        img = torch.from_numpy(img).unsqueeze(0).float().to(self.device)
-        if self.fp16:
-            img = img.half()  # to FP16
-
-        with torch.no_grad():
-            timer.tic()
-            outputs = self.model(img)
-            if self.decoder is not None:
-                outputs = self.decoder(outputs, dtype=outputs.type())
-            outputs = postprocess(
-                outputs, self.num_classes, self.confthre, self.nmsthre
-            )
-        return outputs, img_info
-
-
-def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
+def imageflow_demo(dets_txt, extractor, vis_folder, current_time, args):
     data_type = check_path_type(args.path)
     timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
     save_folder = osp.join(vis_folder, timestamp)
@@ -184,6 +124,7 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
     save_path = osp.join(save_folder, args.path.split("/")[-1])
     logger.info(f"video or images save_path is {save_path}")
     tracker = Deep_EIoU(args, frame_rate=30)
+    dets = parse_detection_file(dets_txt)
     if data_type == "video":
         cap = cv2.VideoCapture(args.path)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float
@@ -200,15 +141,13 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
                 logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, 1. / max(1e-5, timer.average_time)))
             ret_val, frame = cap.read()
             if ret_val:
-                outputs, img_info = predictor.inference(frame, timer)
-                if outputs[0] is not None:
-                    det = outputs[0].cpu().detach().numpy()
-                    scale = min(exp.test_size[1] / width, exp.test_size[0] / height)
-                    det[:, :4] /= scale
+                det = np.array(dets[frame_id + 1])
+                if len(det) > 0:
+                    det[:, 2:4] = det[:, 0:2] + det[:, 2:4]
                     rows_to_remove = np.any(det[:, 0:4] < 1, axis=1)  # remove edge detection
                     det = det[~rows_to_remove]
                     cropped_imgs = [frame[max(0, int(y1)):min(height, int(y2)), max(0, int(x1)):min(width, int(x2))] for
-                                    x1, y1, x2, y2, _, _, _ in det]
+                                    x1, y1, x2, y2, _, in det]
                     embs = extractor(cropped_imgs)
                     embs = embs.cpu().detach().numpy()
                     online_targets = tracker.update(det, embs)
@@ -227,11 +166,11 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
                             )
                     timer.toc()
                     online_im = plot_tracking(
-                        img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
+                        frame.copy(), online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
                     )
                 else:
                     timer.toc()
-                    online_im = img_info['raw_img']
+                    online_im = frame.copy()
                 if args.save_result:
                     vid_writer.write(online_im)
                 ch = cv2.waitKey(1)
@@ -255,11 +194,9 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
             height, width = frame.shape[:-1]
             if frame_id % 30 == 0:
                 logger.info('Processing frame {} ({:.2f} fps)'.format(frame_id, 1. / max(1e-5, timer.average_time)))
-            outputs, img_info = predictor.inference(frame, timer)
-            if outputs[0] is not None:
-                det = outputs[0].cpu().detach().numpy()
-                scale = min(exp.test_size[1] / width, exp.test_size[0] / height)
-                det[:, :4] /= scale
+            det = np.array(dets[frame_id])
+            if len(det) > 0:
+                det[:, 2:4] = det[:, 0:2] + det[:, 2:4]
                 rows_to_remove = np.any(det[:, 0:4] < 1, axis=1)  # remove edge detection
                 det = det[~rows_to_remove]
                 cropped_imgs = [frame[max(0, int(y1)):min(height, int(y2)), max(0, int(x1)):min(width, int(x2))] for
@@ -282,11 +219,11 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
                         )
                 timer.toc()
                 online_im = plot_tracking(
-                    img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
+                    frame.copy(), online_tlwhs, online_ids, frame_id=frame_id + 1, fps=1. / timer.average_time
                 )
             else:
                 timer.toc()
-                online_im = img_info['raw_img']
+                online_im = frame.copy()
             # if args.save_result:
             #     img_name = os.path.basename(img)
             #     os.makedirs(save_path, exist_ok=True)
@@ -322,51 +259,50 @@ def main(exp, args):
     if args.tsize is not None:
         exp.test_size = (args.tsize, args.tsize)
 
-    model = exp.get_model().to(args.device)
-    logger.info("Model Summary: {}".format(get_model_info(model, exp.test_size)))
-    model.eval()
+    # model = exp.get_model().to(args.device)
+    # logger.info("Model Summary: {}".format(get_model_info(model, exp.test_size)))
+    # model.eval()
 
-    if not args.trt:
-        if args.ckpt is None:
-            ckpt_file = "checkpoints/best_ckpt.pth.tar"
-        else:
-            ckpt_file = args.ckpt
-        logger.info("loading checkpoint")
-        ckpt = torch.load(ckpt_file, map_location="cpu")
-        # load the model state dict
-        model.load_state_dict(ckpt["model"])
-        logger.info("loaded checkpoint done.")
+    # if not args.trt:
+    #     if args.ckpt is None:
+    #         ckpt_file = "checkpoints/best_ckpt.pth.tar"
+    #     else:
+    #         ckpt_file = args.ckpt
+    #     logger.info("loading checkpoint")
+    #     ckpt = torch.load(ckpt_file, map_location="cpu")
+    #     # load the model state dict
+    #     model.load_state_dict(ckpt["model"])
+    #     logger.info("loaded checkpoint done.")
+    #
+    # if args.fuse:
+    #     logger.info("\tFusing model...")
+    #     model = fuse_model(model)
+    #
+    # if args.fp16:
+    #     model = model.half()  # to FP16
+    #
+    # if args.trt:
+    #     assert not args.fuse, "TensorRT model is not support model fusing!"
+    #     trt_file = osp.join(output_dir, "model_trt.pth")
+    #     assert osp.exists(
+    #         trt_file
+    #     ), "TensorRT model is not found!\n Run python3 tools/trt.py first!"
+    #     model.head.decode_in_inference = False
+    #     decoder = model.head.decode_outputs
+    #     logger.info("Using TensorRT to inference")
+    # else:
+    #     trt_file = None
+    #     decoder = None
 
-    if args.fuse:
-        logger.info("\tFusing model...")
-        model = fuse_model(model)
-
-    if args.fp16:
-        model = model.half()  # to FP16
-
-    if args.trt:
-        assert not args.fuse, "TensorRT model is not support model fusing!"
-        trt_file = osp.join(output_dir, "model_trt.pth")
-        assert osp.exists(
-            trt_file
-        ), "TensorRT model is not found!\n Run python3 tools/trt.py first!"
-        model.head.decode_in_inference = False
-        decoder = model.head.decode_outputs
-        logger.info("Using TensorRT to inference")
-    else:
-        trt_file = None
-        decoder = None
-
-    predictor = Predictor(model, exp, trt_file, decoder, args.device, args.fp16)
     current_time = time.localtime()
 
     extractor = FeatureExtractor(
         model_name='osnet_x1_0',
-        model_path='checkpoints/sports_model.pth.tar-60',
+        model_path=f'{PROJECT_ROOT}/checkpoints/sports_model.pth.tar-60',
         device='cuda'
     )
-
-    imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp)
+    dets_txt = "/home/jia/PycharmProjects/Deep-EIoU/football2_filter.txt"
+    imageflow_demo(dets_txt, extractor, vis_folder, current_time, args)
 
 
 if __name__ == "__main__":
