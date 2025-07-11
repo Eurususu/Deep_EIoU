@@ -21,6 +21,7 @@ from yolox.tracking_utils.timer import Timer
 from tracker.Deep_EIoU import Deep_EIoU
 from reid.torchreid.utils import FeatureExtractor
 import torchvision.transforms as T
+from model import Extractor
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
 
@@ -94,7 +95,7 @@ def make_parser():
     parser.add_argument("--mot20", dest="mot20", default=False, action="store_true", help="test mot20.")
 
     # reid args
-    parser.add_argument("--with-reid", dest="with_reid", default=True, action="store_true", help="use Re-ID flag.")
+    parser.add_argument("--with-reid", dest="with_reid", default=True, action="store_false", help="use Re-ID flag.")
     parser.add_argument('--proximity_thresh', type=float, default=0.5,
                         help='threshold for rejecting low overlap reid matches')
     parser.add_argument('--appearance_thresh', type=float, default=0.25,
@@ -143,8 +144,8 @@ def imageflow_demo(dets_txt, extractor, vis_folder, current_time, args):
             if ret_val:
                 det = np.array(dets[frame_id + 1])
                 if len(det) > 0:
-                    det[:, 2:4] = det[:, 0:2] + det[:, 2:4]
                     rows_to_remove = np.any(det[:, 0:4] < 1, axis=1)  # remove edge detection
+                    det[:, 2:4] = det[:, 0:2] + det[:, 2:4]
                     det = det[~rows_to_remove]
                     cropped_imgs = [frame[max(0, int(y1)):min(height, int(y2)), max(0, int(x1)):min(width, int(x2))] for
                                     x1, y1, x2, y2, _, in det]
@@ -173,7 +174,7 @@ def imageflow_demo(dets_txt, extractor, vis_folder, current_time, args):
                     online_im = frame.copy()
                 if args.save_result:
                     vid_writer.write(online_im)
-                ch = cv2.waitKey(1)
+                ch = cv2.waitKey()
                 if ch == 27 or ch == ord("q") or ch == ord("Q"):
                     break
             else:
@@ -296,12 +297,15 @@ def main(exp, args):
 
     current_time = time.localtime()
 
-    extractor = FeatureExtractor(
-        model_name='osnet_x1_0',
-        model_path=f'{PROJECT_ROOT}/checkpoints/sports_model.pth.tar-60',
-        device='cuda'
-    )
-    dets_txt = "/home/jia/PycharmProjects/Deep-EIoU/football2_filter.txt"
+    # extractor = FeatureExtractor(
+    #     model_name='osnet_x1_0',
+    #     model_path=f'{PROJECT_ROOT}/checkpoints/sports_model.pth.tar-60',
+    #     device='cuda'
+    # )
+
+    extractor = Extractor(f'{PROJECT_ROOT}/checkpoints/ckpt.t7')
+
+    dets_txt = "/home/jia/PycharmProjects/Deep-EIoU/detection/football2.txt"
     imageflow_demo(dets_txt, extractor, vis_folder, current_time, args)
 
 

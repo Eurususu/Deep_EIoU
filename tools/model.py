@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+import logging
+import torchvision.transforms as transforms
+import cv2
 
 
 class BasicBlock(nn.Module):
@@ -103,9 +107,48 @@ class Net(nn.Module):
         return x
 
 
+class Extractor(object):
+    def __init__(self, model_path, use_cuda=True):
+        self.net = Net(reid=True)
+        self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
+        state_dict = torch.load(model_path, map_location=lambda storage, loc: storage)[
+            'net_dict']
+        self.net.load_state_dict(state_dict)
+        logger = logging.getLogger("root.tracker")
+        logger.info("Loading weights from {}... Done!".format(model_path))
+        self.net.to(self.device)
+        self.size = (64, 128)   #（128,128）
+        self.norm = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ])
+
+    def _preprocess(self, im_crops):
+        """
+        TODO:
+            1. to float with scale from 0 to 1
+            2. resize to (64, 128) as Market1501 dataset did
+            3. concatenate to a numpy array
+            3. to torch Tensor
+            4. normalize
+        """
+        def _resize(im, size):
+            return cv2.resize(im.astype(np.float32)/255., size)
+
+        im_batch = torch.cat([self.norm(_resize(im, self.size)).unsqueeze(
+            0) for im in im_crops], dim=0).float()
+        return im_batch
+
+    def __call__(self, im_crops):
+        im_batch = self._preprocess(im_crops)
+        with torch.no_grad():
+            im_batch = im_batch.to(self.device)
+            features = self.net(im_batch)
+        return features
+
+
 if __name__ == '__main__':
-    net = Net()
-    x = torch.randn(4, 3, 128, 64)
-    y = net(x)
-    import ipdb
-    ipdb.set_trace()
+    x = [cv2.imread("/home/jia/PycharmProjects/Deep-EIoU/embedding/peoson.jpg")]
+    extr = Extractor("/home/jia/PycharmProjects/Deep-EIoU/checkpoints/ckpt.t7")
+    feature = extr(x)
+    print(feature.shape)

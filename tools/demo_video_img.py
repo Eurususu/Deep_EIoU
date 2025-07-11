@@ -19,8 +19,10 @@ from yolox.utils import fuse_model, get_model_info, postprocess
 from yolox.utils.visualize import plot_tracking
 from yolox.tracking_utils.timer import Timer
 
-from tracker.Deep_EIoU import Deep_EIoU
+# from tracker.Deep_EIoU import Deep_EIoU
+from tracker.Deep_HM_SORT import Deep_HMSORT
 from reid.torchreid.utils import FeatureExtractor
+from model import Extractor
 import torchvision.transforms as T
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
@@ -95,7 +97,7 @@ def make_parser():
     parser.add_argument("--mot20", dest="mot20", default=False, action="store_true", help="test mot20.")
 
     # reid args
-    parser.add_argument("--with-reid", dest="with_reid", default=True, action="store_true", help="use Re-ID flag.")
+    parser.add_argument("--with-reid", dest="with_reid", default=True, action="store_false", help="use Re-ID flag.")
     parser.add_argument('--proximity_thresh', type=float, default=0.5,
                         help='threshold for rejecting low overlap reid matches')
     parser.add_argument('--appearance_thresh', type=float, default=0.25,
@@ -184,7 +186,7 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
     os.makedirs(save_folder, exist_ok=True)
     save_path = osp.join(save_folder, args.path.split("/")[-1])
     logger.info(f"video or images save_path is {save_path}")
-    tracker = Deep_EIoU(args, frame_rate=30)
+    tracker = Deep_HMSORT(args, frame_rate=30)
     if data_type == "video":
         cap = cv2.VideoCapture(args.path)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float
@@ -361,11 +363,13 @@ def main(exp, args):
     predictor = Predictor(model, exp, trt_file, decoder, args.device, args.fp16)
     current_time = time.localtime()
 
-    extractor = FeatureExtractor(
-        model_name='osnet_x1_0',
-        model_path=f'{PROJECT_ROOT}/checkpoints/sports_model.pth.tar-60',
-        device='cuda'
-    )
+    # extractor = FeatureExtractor(
+    #     model_name='osnet_x1_0',
+    #     model_path=f'{PROJECT_ROOT}/checkpoints/sports_model.pth.tar-60',
+    #     device='cuda'
+    # )
+
+    extractor = Extractor(f'{PROJECT_ROOT}/checkpoints/ckpt.t7')
 
     imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp)
 
