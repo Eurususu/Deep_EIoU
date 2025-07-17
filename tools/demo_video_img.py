@@ -20,7 +20,8 @@ from yolox.utils.visualize import plot_tracking
 from yolox.tracking_utils.timer import Timer
 
 # from tracker.Deep_EIoU import Deep_EIoU
-from tracker.Deep_HM_SORT import Deep_HMSORT
+# from tracker.Deep_HM_SORT import Deep_HMSORT
+from tracker.Deep_EIoU_with_appconf import Deep_EIoU
 from reid.torchreid.utils import FeatureExtractor
 from model import Extractor
 import torchvision.transforms as T
@@ -186,7 +187,7 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
     os.makedirs(save_folder, exist_ok=True)
     save_path = osp.join(save_folder, args.path.split("/")[-1])
     logger.info(f"video or images save_path is {save_path}")
-    tracker = Deep_HMSORT(args, frame_rate=30)
+    tracker = Deep_EIoU(args, frame_rate=30)
     if data_type == "video":
         cap = cv2.VideoCapture(args.path)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float
