@@ -32,7 +32,7 @@ def make_parser():
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
 
     parser.add_argument(
-        "--path", default="../demo.mp4", help="path to images or video"
+        "--path", default="../data/basketball3.mp4", help="path to images or video"
     )
     parser.add_argument(
         "--save_result",
@@ -207,7 +207,7 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args, exp):
             if outputs[0] is not None:
                 det = outputs[0].cpu().detach().numpy()
                 scale = min(exp.test_size[1]/width, exp.test_size[0]/height)
-                det /= scale
+                det[:, :4] /= scale
                 rows_to_remove = np.any(det[:, 0:4] < 1, axis=1) # remove edge detection
                 det = det[~rows_to_remove]
                 cropped_imgs = [frame[max(0,int(y1)):min(height,int(y2)),max(0,int(x1)):min(width,int(x2))] for x1,y1,x2,y2,_,_,_ in det]

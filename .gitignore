@@ -6,3 +6,6 @@ checkpoints/sports_model.pth.tar-60
 outputs/
 tools/__pycache__/
 tracker/__pycache__/
+data/
+__pycache__/
+vis_result/

@@ -75,9 +75,9 @@ def extract_video_segment(input_path, output_path, start_frame, end_frame):
 
 # 使用示例
 if __name__ == "__main__":
-    input_video = "/home/jia/PycharmProjects/Deep-EIoU/tools/YOLOX_outputs/yolox_x_ch_sportsmot/track_vis/2025_07_08_13_10_32/1212.mp4"  # 输入视频文件
-    output_video = "test.mp4"  # 输出视频文件
-    start_frame = 1550  # 起始帧(0-indexed)
-    end_frame = 1650  # 结束帧(包含在内)
+    input_video = "/home/jia/PycharmProjects/Deep-EIoU/videos/gameid4.mp4"  # 输入视频文件
+    output_video = "basketball4.mp4"  # 输出视频文件
+    start_frame = 4200  # 起始帧(0-indexed)
+    end_frame = 13200  # 结束帧(包含在内)
 
     extract_video_segment(input_video, output_video, start_frame, end_frame)

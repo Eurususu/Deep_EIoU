@@ -1,0 +1,231 @@
+person1
+frame_1----id_1----frame_100
+frame_110----id_3----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_1----frame_200
+frame_201----id_10----frame_390
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_11----frame_50
+frame_51----id_10----frame_150
+frame_151----id_4----frame_1000
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_4----frame_100
+frame_101----id_12----frame_150
+frame_151----id_15----frame_800
+
+
+>>> 4 <---> 11
+person1
+frame_1----id_1----frame_100
+frame_110----id_3----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_1----frame_200
+frame_201----id_10----frame_390
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50    11--->4
+frame_51----id_10----frame_150
+frame_151----id_11----frame_1000    4--->11
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_11----frame_100  4--->11
+frame_101----id_12----frame_150
+frame_151----id_15----frame_800
+
+
+>>> 11 <---> 10
+person1
+frame_1----id_1----frame_100
+frame_110----id_3----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_1----frame_200
+frame_201----id_11----frame_390     10--->11
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_11----frame_150      10--->11
+frame_151----id_10----frame_1000    11--->10
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100      11--->10
+frame_101----id_12----frame_150
+frame_151----id_15----frame_800
+
+
+>>> 11 <---> 4
+person1
+frame_1----id_1----frame_100
+frame_110----id_3----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_1----frame_200
+frame_201----id_4----frame_390      11--->4
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_4----frame_150       11--->4
+frame_151----id_10----frame_1000
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100
+frame_101----id_12----frame_150
+frame_151----id_15----frame_800
+
+
+>>> 1 <---> 3
+person1
+frame_1----id_1----frame_100
+frame_110----id_1----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_3----frame_200      1--->3
+frame_201----id_4----frame_390
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_4----frame_150
+frame_151----id_10----frame_1000
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100
+frame_101----id_12----frame_150
+frame_151----id_15----frame_800
+
+
+>>> 12 <---> 10
+person1
+frame_1----id_1----frame_100
+frame_110----id_1----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_3----frame_200
+frame_201----id_4----frame_390
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_4----frame_150
+frame_151----id_12----frame_1000    10--->12
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100
+frame_101----id_10----frame_150     12--->10
+frame_151----id_15----frame_800
+
+
+>>> 12 <---> 4
+person1
+frame_1----id_1----frame_100
+frame_110----id_1----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_3----frame_200
+frame_201----id_12----frame_390     4--->12
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_4----frame_150
+frame_151----id_4----frame_1000     12--->4
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100
+frame_101----id_10----frame_150
+frame_151----id_15----frame_800
+
+
+>>> 15 <---> 10
+person1
+frame_1----id_1----frame_100
+frame_110----id_1----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_3----frame_200
+frame_201----id_12----frame_390
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_4----frame_150
+frame_151----id_4----frame_1000
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100
+frame_101----id_10----frame_150
+frame_151----id_10----frame_800     15--->10
+
+
+>>> 12 <---> 3
+person1
+frame_1----id_1----frame_100
+frame_110----id_1----frame_1000
+
+
+person3
+frame_1----id_3----frame_100
+frame_101----id_3----frame_200
+frame_201----id_3----frame_390      12--->3
+
+
+person4
+frame_1----id_4----frame_10
+frame_11----id_4----frame_50
+frame_51----id_4----frame_150
+frame_151----id_4----frame_1000
+
+
+person10
+frame_1----id_10----frame_40
+frame_41----id_10----frame_100
+frame_101----id_10----frame_150
+frame_151----id_10----frame_800

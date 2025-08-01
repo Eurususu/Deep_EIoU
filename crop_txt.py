@@ -21,7 +21,8 @@ def extract_frames(input_file, output_file, start_frame, end_frame, track_ids):
 
                 # 检查帧号是否在指定范围内
                 if start_frame <= frame_id <= end_frame:
-                    adjusted_frame_id = frame_id - start_frame + 1
+                    # adjusted_frame_id = frame_id - start_frame + 1
+                    adjusted_frame_id = frame_id
                     if track_ids is not None and track_id in track_ids:
                         parts[0] = str(frame_id)
                         parts[1] = str(track_id)
@@ -42,7 +43,7 @@ def extract_frames(input_file, output_file, start_frame, end_frame, track_ids):
 if __name__ == "__main__":
     input_txt = "/home/jia/PycharmProjects/gta-link/test_data/DeepEIoU_Results/1212.txt"  # 输入文件名
     output_txt = "filtered_results.txt"  # 输出文件名
-    start_frame = 8120  # 起始帧号
-    end_frame = 8147  # 结束帧号
+    start_frame = 0  # 起始帧号
+    end_frame = 2700  # 结束帧号
 
-    extract_frames(input_txt, output_txt, start_frame, end_frame, [4, 7])
+    extract_frames(input_txt, output_txt, start_frame, end_frame, [])

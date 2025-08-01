@@ -17,7 +17,7 @@ from utils import plot_tracking
 def make_parser():
     parser = argparse.ArgumentParser("DeepEIoU Demo")
     parser.add_argument(
-        "--path", default="/home/jia/dataset/X-AnyLabeling/data/Bangkok.mp4", help="path to images or video"
+        "--path", default="videos/1212.mp4", help="path to images or video"
     )
     parser.add_argument(
         "--save_result",
@@ -51,7 +51,7 @@ def make_parser():
     parser.add_argument("--mot20", dest="mot20", default=False, action="store_true", help="test mot20.")
 
     # reid args
-    parser.add_argument("--with-reid", dest="with_reid", default=False, action="store_true", help="use Re-ID flag.")
+    parser.add_argument("--with-reid", dest="with_reid", default=True, action="store_false", help="use Re-ID flag.")
     parser.add_argument('--proximity_thresh', type=float, default=0.5,
                         help='threshold for rejecting low overlap reid matches')
     parser.add_argument('--appearance_thresh', type=float, default=0.25,
@@ -80,7 +80,7 @@ def imageflow_demo(predictor, extractor, vis_folder, current_time, args):
             logger.info('Processing frame {})'.format(frame_id))
         ret_val, frame = cap.read()
         if ret_val:
-            yolo_results = predictor(frame, verbose=False)[0]
+            yolo_results = predictor(frame, imgsz=[736, 2560], verbose=False)[0]
             det = yolo_results.boxes.data.cpu().numpy()
             det_mask = det[:, 5] == 0
             det = det[det_mask]
